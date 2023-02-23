@@ -1,5 +1,7 @@
 class Api::Latest::ImagesController < ApplicationController
+  skip_before_action :verify_authenticity_token, raise: false
   before_action :set_image, only: %i[ show update destroy ]
+  before_action :authenticate_devise_api_token!, only: %i[ destroy ]
 
   # GET /images
   def index
@@ -35,17 +37,24 @@ class Api::Latest::ImagesController < ApplicationController
 
   # DELETE /images/1
   def destroy
-    @image.destroy
+    devise_api_token = current_devise_api_token
+    if devise_api_token
+      @image.destroy
+      render json: { message: "Logged in as #{devise_api_token}. Image deleted" }, status: :ok
+    else
+      render json: { message: "You need to log in" }, status: :unauthorized
+    end
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_image
-      @image = Image.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def image_params
-      params.require(:image).permit(:image_file)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_image
+    @image = Image.find(params[:id])
+  end
+
+  # Only allow a list of trusted parameters through.
+  def image_params
+    params.require(:image).permit(:image_file)
+  end
 end
