@@ -55,6 +55,6 @@ class Api::Latest::ImagesController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def image_params
-    params.require(:image).permit(:image_file)
+    params.require(:image).permit(image_file: :data)
   end
 end
